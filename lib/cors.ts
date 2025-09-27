@@ -29,6 +29,7 @@ export function buildCorsHeaders(origin?: string): HeadersInit {
     'Vary': 'Origin',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization,Content-Type,x-vercel-protection-bypass',
+    'Access-Control-Max-Age': '86400',
     'Access-Control-Allow-Credentials': 'true',
   };
   if (allow) headers['Access-Control-Allow-Origin'] = allow;
