@@ -12,8 +12,8 @@ export async function GET(request: Request) {
   try {
     const [{ fetchRequestHandler }, { appRouter }, { createContext }] = await Promise.all([
       import('@trpc/server/adapters/fetch'),
-      import('../../../backend/trpc/app-router'),
-      import('../../../backend/trpc/server'),
+      import('@/backend/trpc/app-router'),
+      import('@/backend/trpc/server'),
     ]);
 
     return fetchRequestHandler({

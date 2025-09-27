@@ -1,6 +1,8 @@
 import 'server-only';
 import { router, publicProcedure } from './server';
 import { z } from 'zod';
+import { contactsRouter } from './routers/contacts';
+import { messagesRouter } from './routers/messages';
 
 // Simple health check procedure
 const healthRouter = router({
@@ -16,7 +18,8 @@ const healthRouter = router({
 // Main app router
 export const appRouter = router({
   health: healthRouter,
-  // Add more routers here as needed (contacts, messages, etc.)
+  contacts: contactsRouter,
+  messages: messagesRouter,
 });
 
 export type AppRouter = typeof appRouter;
