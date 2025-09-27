@@ -24,7 +24,19 @@ function isRequest(obj: unknown): obj is Request {
 
 export function buildCorsHeaders(origin?: string): HeadersInit {
   const allowlist = new Set<string>([...STATIC_ALLOWED, ...parseEnvAllowlist()]);
-  const allow = origin && allowlist.has(origin) ? origin : '';
+  let allow = origin && allowlist.has(origin) ? origin : '';
+  // Dev convenience: allow any https://*.exp.direct when ALLOW_EXP_DIRECT=true
+  if (!allow && origin && process.env.ALLOW_EXP_DIRECT === 'true') {
+    try {
+      const url = new URL(origin);
+      const host = url.host.toLowerCase();
+      if (url.protocol === 'https:' && /(^|\.)exp\.direct$/.test(host)) {
+        allow = origin;
+      }
+    } catch (_) {
+      // ignore invalid origin strings
+    }
+  }
   const headers: Record<string, string> = {
     'Vary': 'Origin',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
