@@ -1,12 +1,7 @@
 import 'server-only';
+import { buildCorsHeaders, options as corsOptions } from "@/lib/cors";
 
 export const runtime = 'nodejs';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
 
 export async function GET(request: Request) {
   try {
@@ -16,7 +11,7 @@ export async function GET(request: Request) {
       import('@/backend/trpc/server'),
     ]);
 
-    return fetchRequestHandler({
+    const res = await fetchRequestHandler({
       endpoint: '/api/trpc',
       req: request,
       router: appRouter,
@@ -25,6 +20,15 @@ export async function GET(request: Request) {
         console.error(`❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`);
       },
     });
+
+    // Append dynamic CORS headers
+    const origin = request.headers.get('origin') ?? undefined;
+    const cors = buildCorsHeaders(origin);
+    const headers = new Headers(res.headers);
+    Object.entries(cors).forEach(([k, v]) => headers.set(k, v as string));
+    // Ensure JSON content type is preserved
+    if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    return new Response(res.body, { status: res.status, headers });
   } catch (error: any) {
     console.error('[tRPC API] Handler error:', error);
     return new Response(
@@ -34,10 +38,7 @@ export async function GET(request: Request) {
       }),
       {
         status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        }
+        headers: { 'Content-Type': 'application/json', ...buildCorsHeaders(request.headers.get('origin') ?? undefined) }
       }
     );
   }
@@ -47,9 +48,7 @@ export async function POST(request: Request) {
   return GET(request);
 }
 
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
+export async function OPTIONS(request: Request) {
+  return corsOptions(request);
 }
+

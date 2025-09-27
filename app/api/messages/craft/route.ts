@@ -23,7 +23,7 @@ function rateLimit(ip: string): boolean {
   return false;
 }
 
-export async function OPTIONS(){ return options(); }
+export async function OPTIONS(req: Request){ return options(req); }
 
 export async function POST(req: Request){
   try {
@@ -32,10 +32,10 @@ export async function POST(req: Request){
 
     const body = await req.json();
     const parsed = craftMessageSchema.safeParse(body);
-    if (!parsed.success) return badRequest(parsed.error.message);
+    if (!parsed.success) return badRequest(parsed.error.message, req);
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    if (!client.apiKey) return serverError('Missing OPENAI_API_KEY');
+    if (!client.apiKey) return serverError('Missing OPENAI_API_KEY', req);
 
     const { tone = 'friendly', purpose, context = '', to } = parsed.data;
     const prompt = `Craft a ${tone} message for the following purpose: ${purpose}.\nContext: ${context}.\nRecipient: ${to?.name || ''} ${to?.email || ''}`;
@@ -49,8 +49,8 @@ export async function POST(req: Request){
 
     // @ts-ignore - output_text available in SDK response helper
     const text: string = (resp as any).output_text ?? '';
-    return ok({ message: text.trim() });
+    return ok({ message: text.trim() }, req);
   } catch (err: any) {
-    return serverError(err?.message || 'Internal error');
+    return serverError(err?.message || 'Internal error', req);
   }
 }

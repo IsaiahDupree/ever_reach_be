@@ -2,14 +2,14 @@ import { ok, options } from "@/lib/cors";
 
 export const runtime = 'edge';
 
-export function OPTIONS(){ return options(); }
+export function OPTIONS(req: Request){ return options(req); }
 
-export function GET(){
+export function GET(req: Request){
   return ok({
     ok: true,
     ts: Date.now(),
     commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
     buildId: process.env.NEXT_BUILD_ID ?? null,
     branch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
-  });
+  }, req);
 }

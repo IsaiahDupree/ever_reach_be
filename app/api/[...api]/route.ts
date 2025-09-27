@@ -1,51 +1,25 @@
 // Catch-all API route - removed Hono dependency
 // This backend uses tRPC at /api/trpc and specific route handlers
 
+import { buildCorsHeaders, options as corsOptions } from "@/lib/cors";
+
 export const runtime = 'edge';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-
-const notFoundResponse = new Response(
-  JSON.stringify({
-    error: 'Not Found',
-    message: 'Use /api/trpc for tRPC calls or /api/health for health checks',
-  }),
-  {
-    status: 404,
-    headers: {
-      'Content-Type': 'application/json',
-      ...corsHeaders,
-    },
-  }
-);
-
-export async function GET() {
-  return notFoundResponse;
+function notFound(req: Request) {
+  const origin = req.headers.get('origin') ?? undefined;
+  const headers = { 'Content-Type': 'application/json', ...buildCorsHeaders(origin) } as HeadersInit;
+  return new Response(
+    JSON.stringify({
+      error: 'Not Found',
+      message: 'Use /api/trpc for tRPC calls or /api/health for health checks',
+    }),
+    { status: 404, headers }
+  );
 }
 
-export async function POST() {
-  return notFoundResponse;
-}
-
-export async function PUT() {
-  return notFoundResponse;
-}
-
-export async function DELETE() {
-  return notFoundResponse;
-}
-
-export async function PATCH() {
-  return notFoundResponse;
-}
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
+export async function GET(req: Request) { return notFound(req); }
+export async function POST(req: Request) { return notFound(req); }
+export async function PUT(req: Request) { return notFound(req); }
+export async function DELETE(req: Request) { return notFound(req); }
+export async function PATCH(req: Request) { return notFound(req); }
+export async function OPTIONS(req: Request) { return corsOptions(req); }
